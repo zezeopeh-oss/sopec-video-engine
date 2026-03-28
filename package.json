@@ -2,10 +2,6 @@
   "name": "sopec-video-engine",
   "version": "1.0.0",
   "type": "module",
-  "scripts": {
-    "install": "pnpm install --no-frozen-lockfile",
-    "build": "vercel build"
-  },
   "dependencies": {
     "node-fetch": "^3.3.2"
   }
