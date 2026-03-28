@@ -1,15 +1,10 @@
 {
   "name": "sopec-brain",
   "version": "1.0.0",
-  "main": "src/index.ts",
   "scripts": {
     "start": "node src/index.ts"
   },
   "dependencies": {
     "express": "^4.18.2"
-  },
-  "devDependencies": {
-    "typescript": "^5.0.0",
-    "ts-node": "^10.9.1"
   }
 }
