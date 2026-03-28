@@ -1,10 +1,12 @@
 {
-  "name": "sopec-brain",
+  "name": "sopec-video-engine",
   "version": "1.0.0",
+  "type": "module",
   "scripts": {
-    "start": "node src/index.ts"
+    "install": "pnpm install --no-frozen-lockfile",
+    "build": "vercel build"
   },
   "dependencies": {
-    "express": "^4.18.2"
+    "node-fetch": "^3.3.2"
   }
 }
