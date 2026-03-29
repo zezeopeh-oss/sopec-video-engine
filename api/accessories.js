@@ -2,31 +2,20 @@ export default async function handler(req, res) {
   if (req.method === 'POST') {
     const { productName, productPrice, category, productImage } = req.body;
 
-    if (!productImage) return res.status(400).json({ error: "رابط الصورة مفقود" });
-
     try {
-      // تحديد "شخصية" الإعلان بناءً على القسم
-      let promptTask = `اكتب جملة تسويقية مصرية قصيرة لمنتج: ${productName} في قسم ${category}.`;
-      
-      if (category.includes("إكسسوارات") || category.includes("Accessories")) {
-        promptTask += " ركز على الشياكة، البنات، واللمعة (اللهجة المصرية الشيك).";
-      } else if (category.includes("Home") || category.includes("منزل")) {
-        promptTask += " ركز على الراحة، جمال البيت، والدفء (اللهجة المصرية الدافئة).";
-      }
-
+      // 1. طلب النص من Groq
       const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${process.env.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: "llama-3.3-70b-versatile",
-          messages: [{ role: "user", content: promptTask }]
+          messages: [{ role: "user", content: `جملة بيع مصرية للبنات: ${productName} بـ ${productPrice}ج` }]
         })
       });
-
       const groqData = await groqResponse.json();
-      const caption = groqData.choices[0]?.message?.content || "قطعة مميزة ليكي";
+      const caption = groqData.choices[0]?.message?.content || "شياكة ليكي";
 
-      // إرسال الطلب لـ Shotstack
+      // 2. إرسال لـ Shotstack مع فحص دقيق للرد
       const shotstackResponse = await fetch('https://api.shotstack.io/stage/render', {
         method: 'POST',
         headers: { 'x-api-key': process.env.SHOTSTACK_STAGE_KEY, 'Content-Type': 'application/json' },
@@ -34,8 +23,8 @@ export default async function handler(req, res) {
           timeline: {
             tracks: [{
               clips: [
-                { asset: { type: "text", text: caption, font: { family: "Montserrat", size: 32 } }, start: 0, length: 5 },
-                { asset: { type: "image", src: productImage }, start: 0, length: 5, effect: "zoomIn" }
+                { asset: { type: "text", text: caption, font: { family: "Montserrat", size: 30 } }, start: 0, length: 5 },
+                { asset: { type: "image", src: productImage }, start: 0, length: 5 }
               ]
             }]
           },
@@ -44,10 +33,20 @@ export default async function handler(req, res) {
       });
 
       const shotstackData = await shotstackResponse.json();
-      res.status(200).json({ renderId: shotstackData.response.id, caption: caption });
+
+      // --- هنا التعديل الجوهري للفحص ---
+      if (!shotstackData.response || !shotstackData.response.id) {
+        return res.status(500).json({ 
+          error: "Shotstack Rejected Request", 
+          reason: shotstackData.message || "Unknown Reason",
+          sentImage: productImage // لنرى الرابط الذي وصل فعلياً
+        });
+      }
+
+      res.status(200).json({ renderId: shotstackData.response.id });
 
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: "System Crash", details: error.message });
     }
   } else {
     res.status(405).json({ message: 'Method not allowed' });
