@@ -3,10 +3,6 @@ export default async function handler(req, res) {
     const { productName, productPrice, productDescription, productLink } = req.body;
 
     try {
-      if (!process.env.GROQ_API_KEY) {
-        return res.status(500).json({ error: "Missing GROQ_API_KEY" });
-      }
-
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -14,20 +10,31 @@ export default async function handler(req, res) {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: "llama-3.3-70b-versatile", // تم التحديث هنا
+          model: "llama-3.3-70b-versatile",
           messages: [{ 
             role: "user", 
-            content: `اكتب سيناريو إعلاني احترافي لمنتج: ${productName}. السعر: ${productPrice}. الوصف: ${productDescription}. الرابط: ${productLink}` 
+            content: `أنت مخرج إعلانات محترف متخصص في براندات الإكسسوارات النسائية الراقية في مصر. 
+            المطلوب: كتابة "ديكوباج" (سكريبت تصويري) لمنتج: ${productName}. 
+            السعر: ${productPrice} جنيه. 
+            الوصف الأصلي: ${productDescription}.
+
+            القواعد الصارمة:
+            1. الجمهور المستهدف: بنات وسيدات مصريات (استخدم لهجة مصرية "شيك" وعصرية).
+            2. تقسيم السيناريو: يجب أن تذكر (حركة الكاميرا، نوع الإضاءة، تفاصيل المحيط/الديكور).
+            3. الإضاءة: ركز على الـ Cinematic Lighting واللمعان (Sparkle) الخاص بالقطعة.
+            4. الموديل: يجب أن تكون "بنت" بإطلالة أنيقة (Outfit) تليق بالقطعة.
+            5. النص الصوتي: كلام مصري جذاب (مثال: "القطعة اللي هتكمل شياكتك"، "لمسة رقيقة ليكي").
+            6. لا تستخدم مصطلحات صينية أو ترجمة آلية غريبة.
+            7. الرابط في النهاية: ${productLink}
+
+            تنسيق المخرج:
+            - المشهد (وصف الكادر، الإضاءة، الحركة).
+            - النص الصوتي (باللهجة المصرية).` 
           }]
         })
       });
 
       const data = await response.json();
-      
-      if (data.error) {
-        return res.status(500).json({ error: "Groq API Error", details: data.error });
-      }
-
       res.status(200).json({ script: data.choices[0].message.content });
     } catch (error) {
       res.status(500).json({ error: "Server Exception", message: error.message });
