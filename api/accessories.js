@@ -3,9 +3,8 @@ export default async function handler(req, res) {
     const { productName, productPrice, productDescription, productLink } = req.body;
 
     try {
-      // التأكد من وجود المفتاح
       if (!process.env.GROQ_API_KEY) {
-        return res.status(500).json({ error: "Missing GROQ_API_KEY in Vercel settings" });
+        return res.status(500).json({ error: "Missing GROQ_API_KEY" });
       }
 
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -15,7 +14,7 @@ export default async function handler(req, res) {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: "mixtral-8x7b-32768",
+          model: "llama-3.3-70b-versatile", // تم التحديث هنا
           messages: [{ 
             role: "user", 
             content: `اكتب سيناريو إعلاني احترافي لمنتج: ${productName}. السعر: ${productPrice}. الوصف: ${productDescription}. الرابط: ${productLink}` 
@@ -25,7 +24,6 @@ export default async function handler(req, res) {
 
       const data = await response.json();
       
-      // إذا كان هناك خطأ من Groq نفسه
       if (data.error) {
         return res.status(500).json({ error: "Groq API Error", details: data.error });
       }
